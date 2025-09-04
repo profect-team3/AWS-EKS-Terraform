@@ -1,14 +1,8 @@
-data "terraform_remote_state" "network" {
-  backend = "local"
-  config = {
-    path = "${path.module}/../10-network/terraform.tfstate"
-  }
-}
-
+#Local -> subnet = "subnet-xxxxxx" , module -> 로컬의 배열 사용으로 변경 했습니다, 라우팅 테이블 - rtb-xxxxxxxxx
 data "terraform_remote_state" "security" {
   backend = "local"
   config = {
-    path = "${path.module}/../20-security/terraform.tfstate"
+    path = "${path.module}/../10-security/terraform.tfstate"
   }
 }
 
@@ -17,10 +11,10 @@ locals {
   tags = merge(var.tags, { Project = var.project, Env = var.env })
   region = var.region
 
-  vpc_id = data.terraform_remote_state.network.outputs.vpc_id
-  private_subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids
-  private_route_table_ids = data.terraform_remote_state.network.outputs.private_route_table_ids
-
+  private_subnet_ids = local.private_subnet_ids
+  vpc_id = "vpc-xxxxxxxx"
+  private_route_table_ids = "rtb-xxxxxxx"
+  private_subnet_ids = ["subnet-xxxxxxxxxxxxxxxxx", "subnet-xxxxxxxx"]
   sg_alb_id = data.terraform_remote_state.security.outputs.sg_alb_id
   vpc_endpoint_sg_id = data.terraform_remote_state.security.outputs.vpc_endpoint_sg_id
 }
@@ -30,7 +24,7 @@ locals {
 module "alb" {
   source            = "../../modules/edge/alb"
   name              = local.name
-  vpc_id            = local.vpc_id
+  vpc_id            = "vpc-xxxxxxx"
   subnet_ids        = local.private_subnet_ids
   sg_alb_id         = local.sg_alb_id
   # alb_certificate_arn = var.alb_certificate_arn

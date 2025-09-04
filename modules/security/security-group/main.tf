@@ -7,12 +7,12 @@ resource "aws_security_group" "mongo_db" {
   })
 }
 
-# postgres
-resource "aws_security_group" "postgres_db" {
-  name        = "${var.name}-postgres-sg"
+# rds
+resource "aws_security_group" "rds" {
+  name        = "${var.name}-rds-sg"
   vpc_id      = var.vpc_id
   tags        = merge(var.tags, {
-    Name = "${var.name}-postgres-sg"
+    Name = "${var.name}-rds-sg"
   })
 }
 
@@ -83,18 +83,18 @@ resource "aws_vpc_security_group_egress_rule" "mongo_all_out" {
   cidr_ipv4         = "0.0.0.0/0"
 }
 
-# postgres
-resource "aws_vpc_security_group_ingress_rule" "postgres_ecs" {
+# RDS
+resource "aws_vpc_security_group_ingress_rule" "rds_eks" {
   for_each                     = var.service_definitions
-  security_group_id            = aws_security_group.postgres_db.id
+  security_group_id            = aws_security_group.rds.id
   ip_protocol                  = "tcp"
   from_port                    = 5432
   to_port                      = 5432
   referenced_security_group_id = aws_security_group.svc[each.key].id
 }
 
-resource "aws_vpc_security_group_egress_rule" "postgres_all_out" {
-  security_group_id = aws_security_group.postgres_db.id
+resource "aws_vpc_security_group_egress_rule" "rds_all_out" {
+  security_group_id = aws_security_group.rds.id
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
 }
@@ -117,11 +117,11 @@ resource "aws_vpc_security_group_egress_rule" "redis_all_out" {
 
 # ecs
 locals {
-  # 각 서비스에서 postgres로 나가야 하는 경우만 추려, 포트값을 뽑아 맵 구성
-  svc_to_postgres = {
+  # 각 서비스에서 rds로 나가야 하는 경우만 추려, 포트값을 뽑아 맵 구성
+  svc_to_rds = {
     for svc, conf in var.service_definitions :
-    svc => [for e in conf.egress : e.port if e.to == "postgres"][0]
-    if length([for e in conf.egress : e if e.to == "postgres"]) > 0
+    svc => [for e in conf.egress : e.port if e.to == "rds"][0]
+    if length([for e in conf.egress : e if e.to == "rds"]) > 0
   }
 
   svc_to_mongo = {
@@ -137,14 +137,14 @@ locals {
   }
 }
 
-# ECS -> Postgres
-resource "aws_vpc_security_group_egress_rule" "ecs_to_postgres" {
-  for_each                      = local.svc_to_postgres
+# ECS -> Rds
+resource "aws_vpc_security_group_egress_rule" "ecs_to_Rds" {
+  for_each                      = local.svc_to_rds
   security_group_id             = aws_security_group.svc[each.key].id
   ip_protocol                   = "tcp"
   from_port                     = each.value
   to_port                       = each.value
-  referenced_security_group_id  = aws_security_group.postgres_db.id
+  referenced_security_group_id  = aws_security_group.rds.id
 }
 
 # ECS -> Mongo

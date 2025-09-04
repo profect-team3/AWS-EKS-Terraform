@@ -48,35 +48,44 @@ variable "volume_iops" {
   default     = null
 }
 
-# --- PostgreSQL 전용 오버라이드(선택) ---
-variable "postgres_ami_id" {
+# --- RDS 전용 오버라이드(선택) ---
+variable "rds_username" {
   type        = string
-  description = "PostgreSQL용 AMI ID (없으면 공통 ami_id 사용)"
-  default     = null
+  description = "RDS DB username"
 }
 
-variable "postgres_instance_type" {
+variable "rds_password" {
   type        = string
-  description = "PostgreSQL용 인스턴스 타입 (없으면 공통 instance_type 사용)"
-  default     = null
+  description = "RDS DB password"
+  sensitive   = true
 }
 
-variable "postgres_key_name" {
+variable "rds_db_name" {
   type        = string
-  description = "PostgreSQL용 키페어 (없으면 공통 key_name 사용)"
-  default     = null
+  default     = "order_platform"
 }
 
-variable "postgres_volume_size" {
-  type        = number
-  description = "PostgreSQL용 EBS 크기 (없으면 공통 volume_size 사용)"
-  default     = null
+variable "engine_version" {
+  type        = string
+  default     = "16.9"
 }
 
-variable "postgres_volume_type" {
+variable "instance_class" {
   type        = string
-  description = "PostgreSQL용 EBS 타입 (없으면 공통 volume_type 사용)"
-  default     = null
+  default     = "db.m5.large"
+}
+
+variable "proxy_name" {
+  type        = string
+  default     = "OrderRdsProxy"
+}
+
+variable "proxy_secret_arn" {
+  type        = string
+}
+
+variable "proxy_role_arn" {
+  type        = string
 }
 
 # --- Redis 전용 오버라이드(선택) ---
@@ -91,6 +100,12 @@ variable "redis_instance_type" {
   description = "Redis용 인스턴스 타입 (없으면 공통 instance_type 사용)"
   default     = null
 }
+
+variable "rds_instance_class" {
+  type = string
+  default = "db.m5.large"
+}
+
 
 variable "redis_key_name" {
   type        = string
@@ -142,8 +157,8 @@ variable "mongo_volume_type" {
 }
 
 #--DOC DB --
-variable "db_username"         { type = string }
-variable "db_password"         { type = string }
+variable "docdb_username"         { type = string }
+variable "docdb_password"         { type = string }
 variable "docdb_instance_class"{
   type = string
   default = "db.t3.medium"
