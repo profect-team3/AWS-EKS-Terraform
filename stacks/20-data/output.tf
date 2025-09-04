@@ -5,12 +5,22 @@
 # output "postgres_instance_id" {
 #   value = { for k, v in module.postgres : k => v.postgres_instance_ids }
 # }
-output "postgres_private_ips" {
-  value = module.postgres.postgres_private_ips
+output "rds_instance_id" {
+  value = module.rds.rds_instance_id
 }
-output "postgres_private_dns" {
-  value = module.postgres.postgres_private_dns
+
+output "rds_endpoint" {
+  value = module.rds.rds_endpoint
 }
+
+output "rds_port" {
+  value = module.rds.rds_port
+}
+
+output "rds_proxy_endpoint" {
+  value = module.rds.rds_proxy_endpoint
+}
+
 
 
 # Redis
