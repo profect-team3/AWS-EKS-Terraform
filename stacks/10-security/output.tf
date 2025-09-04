@@ -8,9 +8,9 @@ output "sg_mongo_id" {
   value       = module.security_group.sg_mongo_id
 }
 
-output "sg_postgres_id" {
-  description = "Postgres Security Group ID"
-  value       = module.security_group.sg_postgres_id
+output "sg_rds_id" {
+  description = "Rds Security Group ID"
+  value       = module.security_group.sg_rds_id
 }
 
 output "sg_redis_id" {

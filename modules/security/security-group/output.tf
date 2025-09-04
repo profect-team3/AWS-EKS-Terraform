@@ -8,9 +8,9 @@ output "sg_mongo_id" {
   value       = aws_security_group.mongo_db.id
 }
 
-output "sg_postgres_id" {
-  description = "Postgres Security Group ID"
-  value       = aws_security_group.postgres_db.id
+output "sg_rds_id" {
+  description = "Rds Security Group ID"
+  value       = aws_security_group.rds.id
 }
 
 output "sg_redis_id" {
