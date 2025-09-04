@@ -1,14 +1,9 @@
-data "terraform_remote_state" "network" {
-  backend = "local"
-  config = {
-    path = "${path.module}/../10-network/terraform.tfstate"
-  }
-}
-
+#Local -> subnet = "subnet-xxxxxx" , module -> 로컬의 배열 사용으로 변경 했습니다.
+#DocDB -> subnetids 부분은 원래 서브넷을 여러 개 쓰도록 되어 있는데, 아직 테스트 중이므로 list로 반환하기 위해 [local~~[0]]으로 설정 했습니다.
 data "terraform_remote_state" "security" {
   backend = "local"
   config = {
-    path = "${path.module}/../20-security/terraform.tfstate"
+    path = "${path.module}/../10-security/terraform.tfstate"
   }
 }
 
@@ -23,9 +18,7 @@ data "aws_secretsmanager_secret" "rds" {
 locals {
   name = "${var.project}-${var.env}"
   tags = merge(var.tags, { Project = var.project, Env = var.env })
-  private_subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids
-  # vpc_id = "vpc-xxxxxxxx"
-  # private_subnet_ids = ["subnet-xxxxxxxxxxxxxxxxx"]
+  private_subnet_ids = ["subnet-xxxxxxxxxxxxxxxxx","subnet-xxxxxxx"]
   sg_rds_id = data.terraform_remote_state.security.outputs.sg_rds_id
   sg_redis_id = data.terraform_remote_state.security.outputs.sg_redis_id
   sg_mongo_id = data.terraform_remote_state.security.outputs.sg_mongo_id
@@ -53,7 +46,7 @@ module "redis" {
 module "docdb" {
   source      = "../../modules/data/docdb"
   name        = local.name
-  subnet_ids  = local.private_subnet_ids
+  subnet_ids  = [local.private_subnet_ids[0]]
   sg_mongo_id = local.sg_mongo_id
   db_username    = var.docdb_username
   db_password    = var.docdb_password

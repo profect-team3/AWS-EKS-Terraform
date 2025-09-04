@@ -1,21 +1,14 @@
-data "terraform_remote_state" "network" {
-  backend = "local"
-  config = {
-    path = "${path.module}/../10-network/terraform.tfstate"
-  }
-}
-
 locals {
   name = "${var.project}-${var.env}"
   tags = merge(var.tags, { Project = var.project, Env = var.env })
-  vpc_id = data.terraform_remote_state.network.outputs.vpc_id
+  # vpc_id = "REPLACE_WITH_VPC_ID" # This will need to be passed as a variable
 }
 
 module "security_group" {
   source   = "../../modules/security/security-group"
   name     = local.name
   tags     = local.tags
-  vpc_id   = local.vpc_id
+  vpc_id   = "vpc-xxxxxxxx"
   service_definitions = var.service_definitions
   vpc_cidr = var.vpc_cidr
 }
