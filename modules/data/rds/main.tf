@@ -63,6 +63,6 @@ resource "aws_db_proxy_default_target_group" "this" {
 # RDS Proxy Target
 resource "aws_db_proxy_target" "this" {
   db_proxy_name         = aws_db_proxy.this.name
-  target_group_name     = aws_db_proxy_default_target_group.this.name
-  db_instance_identifier = aws_db_instance.this.id
+  target_group_name     = "default"
+  db_instance_identifier = aws_db_instance.this.identifier
 }

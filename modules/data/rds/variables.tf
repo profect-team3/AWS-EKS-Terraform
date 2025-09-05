@@ -33,7 +33,7 @@ variable "instance_class" {
 # RDS Proxy 관련
 variable "proxy_name" {
   type    = string
-  default = "OrderRdsProxy"
+  default = "order-rds-proxy"
 }
 
 variable "proxy_idle_client_timeout" {

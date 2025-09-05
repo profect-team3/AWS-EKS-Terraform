@@ -80,14 +80,6 @@ variable "proxy_name" {
   default     = "OrderRdsProxy"
 }
 
-variable "proxy_secret_arn" {
-  type        = string
-}
-
-variable "proxy_role_arn" {
-  type        = string
-}
-
 # --- Redis 전용 오버라이드(선택) ---
 variable "redis_ami_id" {
   type        = string
