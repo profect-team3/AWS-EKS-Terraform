@@ -12,7 +12,7 @@ data "aws_iam_role" "proxy_role" {
 }
 
 data "aws_secretsmanager_secret" "rds" {
-  arn = "arn:aws:secretsmanager:ap-northeast-2:252098843029:secret:prod/postgres-DJGssh"
+  arn = "arn:aws:secretsmanager:ap-northeast-2:252098843029:secret:prod/rds-KDVpON"
 }
 
 locals {
@@ -69,7 +69,8 @@ module "rds" {
   engine_version  = var.engine_version
   instance_class  = var.rds_instance_class
   proxy_name      = var.proxy_name
-  proxy_secret_arn = "${data.aws_secretsmanager_secret.rds.arn}:DB_PASSWORD::"
+  proxy_secret_arn_username = "${data.aws_secretsmanager_secret.rds.arn}:username::"
+  proxy_secret_arn_password = "${data.aws_secretsmanager_secret.rds.arn}:password::"
   proxy_role_arn   = data.aws_iam_role.proxy_role.arn
 }
 

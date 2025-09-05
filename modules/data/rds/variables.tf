@@ -46,7 +46,11 @@ variable "proxy_borrow_timeout" {
   default = 120 # 2분
 }
 
-variable "proxy_secret_arn" {
+variable "proxy_secret_arn_username" {
+  type = string
+}
+
+variable "proxy_secret_arn_password" {
   type = string
 }
 
