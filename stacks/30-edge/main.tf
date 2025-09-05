@@ -11,10 +11,9 @@ locals {
   tags = merge(var.tags, { Project = var.project, Env = var.env })
   region = var.region
 
-  private_subnet_ids = local.private_subnet_ids
-  vpc_id = "vpc-xxxxxxxx"
-  private_route_table_ids = "rtb-xxxxxxx"
-  private_subnet_ids = ["subnet-xxxxxxxxxxxxxxxxx", "subnet-xxxxxxxx"]
+  vpc_id = "vpc-05e4602e06b973291"
+  private_route_table_ids = ["rtb-0d83f55e89e8fb64e", "rtb-0ef4a4135100431b8"]
+  private_subnet_ids = ["subnet-0520c9b431facfcbe", "subnet-08b1c187f7889d2d4"]
   sg_alb_id = data.terraform_remote_state.security.outputs.sg_alb_id
   vpc_endpoint_sg_id = data.terraform_remote_state.security.outputs.vpc_endpoint_sg_id
 }
@@ -24,7 +23,7 @@ locals {
 module "alb" {
   source            = "../../modules/edge/alb"
   name              = local.name
-  vpc_id            = "vpc-xxxxxxx"
+  vpc_id            = local.vpc_id
   subnet_ids        = local.private_subnet_ids
   sg_alb_id         = local.sg_alb_id
   # alb_certificate_arn = var.alb_certificate_arn
@@ -37,7 +36,7 @@ module "alb" {
 module "nlb" {
   source        = "../../modules/edge/nlb"
   name          = local.name
-  vpc_id            = local.vpc_id
+  vpc_id        = local.vpc_id
   subnet_ids    = local.private_subnet_ids
   listener_ports= [80]
   alb_arn       = module.alb.alb_arn

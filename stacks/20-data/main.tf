@@ -18,7 +18,7 @@ data "aws_secretsmanager_secret" "rds" {
 locals {
   name = "${var.project}-${var.env}"
   tags = merge(var.tags, { Project = var.project, Env = var.env })
-  private_subnet_ids = ["subnet-xxxxxxxxxxxxxxxxx","subnet-xxxxxxx"]
+  private_subnet_ids = ["subnet-0520c9b431facfcbe","subnet-08b1c187f7889d2d4"]
   sg_rds_id = data.terraform_remote_state.security.outputs.sg_rds_id
   sg_redis_id = data.terraform_remote_state.security.outputs.sg_redis_id
   sg_mongo_id = data.terraform_remote_state.security.outputs.sg_mongo_id
@@ -46,7 +46,7 @@ module "redis" {
 module "docdb" {
   source      = "../../modules/data/docdb"
   name        = local.name
-  subnet_ids  = [local.private_subnet_ids[0]]
+  subnet_ids  = local.private_subnet_ids
   sg_mongo_id = local.sg_mongo_id
   db_username    = var.docdb_username
   db_password    = var.docdb_password
