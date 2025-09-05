@@ -69,8 +69,7 @@ module "rds" {
   engine_version  = var.engine_version
   instance_class  = var.rds_instance_class
   proxy_name      = var.proxy_name
-  proxy_secret_arn_username = "${data.aws_secretsmanager_secret.rds.arn}:username::"
-  proxy_secret_arn_password = "${data.aws_secretsmanager_secret.rds.arn}:password::"
+  proxy_secret_arn = "${data.aws_secretsmanager_secret.rds.arn}"
   proxy_role_arn   = data.aws_iam_role.proxy_role.arn
 }
 

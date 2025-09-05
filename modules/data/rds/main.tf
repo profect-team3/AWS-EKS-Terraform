@@ -40,8 +40,7 @@ resource "aws_db_proxy" "this" {
     auth_scheme = "SECRETS"
     description = "Postgres proxy auth"
     iam_auth    = "DISABLED"
-    secret_arn_username  = var.proxy_secret_arn_username
-    secret_arn_password  = var.proxy_secret_arn_password
+    secret_arn = var.proxy_secret_arn
   }
   tags = var.tags
 
