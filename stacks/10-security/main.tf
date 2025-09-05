@@ -8,7 +8,7 @@ module "security_group" {
   source   = "../../modules/security/security-group"
   name     = local.name
   tags     = local.tags
-  vpc_id   = "vpc-xxxxxxxx"
+  vpc_id   = "vpc-05e4602e06b973291"
   service_definitions = var.service_definitions
   vpc_cidr = var.vpc_cidr
 }
