@@ -18,6 +18,11 @@ output "sg_redis_id" {
   value       = aws_security_group.redis.id
 }
 
+output "bastion_eks_sg_id" {
+  description = "Bastion-Eks Security Group ID"
+  value       = aws_security_group.bastion_eks.id
+}
+
 output "sg_ecs_service_ids" {
   description = "Per-service ECS SG IDs"
   value       = { for k, v in aws_security_group.svc : k => v.id }

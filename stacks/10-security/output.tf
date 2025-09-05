@@ -38,3 +38,7 @@ output "ecs_task_role_arns" {
   value       = module.iam.ecs_task_role_arns
 }
 
+output "bastion_eks" {
+  description = "Bastion EKS SG ID"
+  value = module.security_group.bastion_eks_sg_id
+}

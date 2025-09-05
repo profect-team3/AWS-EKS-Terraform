@@ -44,6 +44,17 @@ resource "aws_security_group" "alb" {
   })
 }
 
+# Bastion-Eks Security Group
+resource "aws_security_group" "bastion_eks" {
+  name        = "Bastion-Eks"
+  description = "SSH"
+  vpc_id      = var.vpc_id
+
+  tags = merge(var.tags, {
+    Name = "Bastion-Eks"
+  })
+}
+
 # VPC Endpoint
 resource "aws_security_group" "vpc_endpoint_sg" {
   name   = "${var.name}-vpce-sg"
@@ -111,6 +122,22 @@ resource "aws_vpc_security_group_ingress_rule" "redis_ecs" {
 
 resource "aws_vpc_security_group_egress_rule" "redis_all_out" {
   security_group_id = aws_security_group.redis.id
+  ip_protocol       = "-1"
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+# Bastion-Eks Ingress Rule
+resource "aws_vpc_security_group_ingress_rule" "bastion_eks_ssh_ingress" {
+  security_group_id = aws_security_group.bastion_eks.id
+  ip_protocol       = "tcp"
+  from_port         = 22
+  to_port           = 22
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+# Bastion-Eks Egress Rule
+resource "aws_vpc_security_group_egress_rule" "bastion_eks_all_egress" {
+  security_group_id = aws_security_group.bastion_eks.id
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
 }
