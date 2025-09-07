@@ -12,7 +12,7 @@ data "aws_iam_role" "proxy_role" {
 }
 
 data "aws_secretsmanager_secret" "rds" {
-  arn = "arn:aws:secretsmanager:ap-northeast-2:252098843029:secret:prod/postgres-DJGssh"
+  arn = "arn:aws:secretsmanager:ap-northeast-2:252098843029:secret:prod/rds-KDVpON"
 }
 
 locals {
@@ -20,6 +20,7 @@ locals {
   tags = merge(var.tags, { Project = var.project, Env = var.env })
   private_subnet_ids = ["subnet-0520c9b431facfcbe","subnet-08b1c187f7889d2d4"]
   sg_rds_id = data.terraform_remote_state.security.outputs.sg_rds_id
+  sg_rds_proxy_id = data.terraform_remote_state.security.outputs.sg_rds_proxy_id
   sg_redis_id = data.terraform_remote_state.security.outputs.sg_redis_id
   sg_mongo_id = data.terraform_remote_state.security.outputs.sg_mongo_id
 }
@@ -61,6 +62,7 @@ module "rds" {
   name       = local.name
   subnet_ids = local.private_subnet_ids
   sg_rds_id  = local.sg_rds_id
+  sg_rds_proxy_id = local.sg_rds_proxy_id
   tags       = local.tags
 
   db_username     = var.rds_username
@@ -69,8 +71,8 @@ module "rds" {
   engine_version  = var.engine_version
   instance_class  = var.rds_instance_class
   proxy_name      = var.proxy_name
-  proxy_secret_arn = "${data.aws_secretsmanager_secret.rds.arn}:DB_PASSWORD::"
-  proxy_role_arn   = data.aws_iam_role.proxy_role.arn
+  proxy_secret_arn = "${data.aws_secretsmanager_secret.rds.arn}"
+  proxy_role_arn   = "arn:aws:iam::252098843029:role/service-role/rds-proxy-role-1757065715664"
 }
 
 #MongoDB

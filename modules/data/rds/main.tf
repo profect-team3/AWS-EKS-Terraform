@@ -34,13 +34,13 @@ resource "aws_db_proxy" "this" {
   idle_client_timeout    = var.proxy_idle_client_timeout
   require_tls            = false
   role_arn               = var.proxy_role_arn
-  vpc_security_group_ids = [var.sg_rds_id]
+  vpc_security_group_ids = [var.sg_rds_proxy_id]
   vpc_subnet_ids         = var.subnet_ids
   auth {
     auth_scheme = "SECRETS"
     description = "Postgres proxy auth"
     iam_auth    = "DISABLED"
-    secret_arn  = var.proxy_secret_arn
+    secret_arn = var.proxy_secret_arn
   }
   tags = var.tags
 

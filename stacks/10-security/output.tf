@@ -13,6 +13,11 @@ output "sg_rds_id" {
   value       = module.security_group.sg_rds_id
 }
 
+output "sg_rds_proxy_id" {
+  description = "Rds Proxy Security Group ID"
+  value = module.security_group.sg_rds_proxy_id
+}
+
 output "sg_redis_id" {
   description = "Redis Security Group ID"
   value       = module.security_group.sg_redis_id
@@ -38,3 +43,7 @@ output "ecs_task_role_arns" {
   value       = module.iam.ecs_task_role_arns
 }
 
+output "bastion_eks" {
+  description = "Bastion EKS SG ID"
+  value = module.security_group.bastion_eks_sg_id
+}
