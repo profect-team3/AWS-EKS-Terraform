@@ -16,6 +16,14 @@ resource "aws_security_group" "rds" {
   })
 }
 
+resource "aws_security_group" "rds_proxy" {
+  name = "${var.name}-rds-proxy-sg"
+  vpc_id = var.vpc_id
+  tags = merge(var.tags, {
+    Name = "${var.name}-rds-proxy-sg"
+  })
+}
+
 # redis
 resource "aws_security_group" "redis" {
   name        = "${var.name}-redis-sg"
@@ -104,10 +112,46 @@ resource "aws_vpc_security_group_ingress_rule" "rds_eks" {
   referenced_security_group_id = aws_security_group.svc[each.key].id
 }
 
+# Bastion-Eks -> RDS 인바운드
+resource "aws_vpc_security_group_ingress_rule" "rds_bastion_eks" {
+  security_group_id            = aws_security_group.rds.id
+  ip_protocol                  = "tcp"
+  from_port                    = 5432
+  to_port                      = 5432
+  referenced_security_group_id = aws_security_group.bastion_eks.id
+}
+
 resource "aws_vpc_security_group_egress_rule" "rds_all_out" {
   security_group_id = aws_security_group.rds.id
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
+}
+
+#RDS-Proxy
+resource "aws_vpc_security_group_ingress_rule" "rds_proxy_rds" {
+  for_each = var.service_definitions
+  security_group_id = aws_security_group.rds_proxy.id
+  ip_protocol       = "tcp"
+  from_port         = 5432
+  to_port           = 5432
+  referenced_security_group_id = aws_security_group.svc[each.key].id
+}
+
+# Bastion-Eks -> RDS-Proxy 인바운드
+resource "aws_vpc_security_group_ingress_rule" "rds_proxy_bastion_eks" {
+  security_group_id            = aws_security_group.rds_proxy.id
+  ip_protocol                  = "tcp"
+  from_port                    = 5432
+  to_port                      = 5432
+  referenced_security_group_id = aws_security_group.bastion_eks.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "rds_proxy_to_rds" {
+  security_group_id            = aws_security_group.rds_proxy.id
+  ip_protocol                  = "tcp"
+  from_port                    = 5432
+  to_port                      = 5432
+  referenced_security_group_id = aws_security_group.rds.id
 }
 
 # redis

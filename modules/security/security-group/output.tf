@@ -13,6 +13,11 @@ output "sg_rds_id" {
   value       = aws_security_group.rds.id
 }
 
+output "sg_rds_proxy_id" {
+  description = "Rds Proxy Security Group ID"
+  value = aws_security_group.rds_proxy.id
+}
+
 output "sg_redis_id" {
   description = "Redis Security Group ID"
   value       = aws_security_group.redis.id
