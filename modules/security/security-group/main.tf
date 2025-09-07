@@ -121,6 +121,15 @@ resource "aws_vpc_security_group_ingress_rule" "rds_bastion_eks" {
   referenced_security_group_id = aws_security_group.bastion_eks.id
 }
 
+# RDS-Proxy -> RDS 인바운드 허용
+resource "aws_vpc_security_group_ingress_rule" "rds_from_rds_proxy" {
+  security_group_id            = aws_security_group.rds.id
+  ip_protocol                  = "tcp"
+  from_port                    = 5432
+  to_port                      = 5432
+  referenced_security_group_id = aws_security_group.rds_proxy.id
+}
+
 resource "aws_vpc_security_group_egress_rule" "rds_all_out" {
   security_group_id = aws_security_group.rds.id
   ip_protocol       = "-1"
