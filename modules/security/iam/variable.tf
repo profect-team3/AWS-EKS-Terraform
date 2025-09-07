@@ -5,19 +5,9 @@ variable "tags"    {
   default = {}
 }
 
-variable "account_id" { type = string }
-
-variable "service_definitions" {
-  description = "Per-service SG definition (ingress from ALB, and specific egress to DB/Cache)"
-  type = map(object({
-    port         = number
-    egress = list(object({
-      to    = string
-      port  = number
-      proto = optional(string, "tcp")
-    }))
-  }))
-}
-
-variable "secret_names" { type = map(string) }
-variable "kms_key_arn"  { type = string }
+variable "account_id"         { type = string }
+variable "eks_cluster_name"   { type = string }   # EKS 클러스터 이름
+variable "namespace"          { type = string }   # ex: msa-test
+variable "kms_key_arn"        { type = string }   # KMS는 필수
+variable "secret_names"       { type = map(string) }
+variable "service_definitions"{ type = any }

@@ -27,3 +27,6 @@ variable "vpc_cidr" {
   description = "VPC CIDR 블록"
   type        = string
 }
+
+variable "eks_cluster_name"   { type = string }
+variable "namespace"          { type = string }

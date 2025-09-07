@@ -28,13 +28,6 @@ output "vpc_endpoint_sg_id" {
   value       = module.security_group.vpc_endpoint_sg_id
 }
 
-output "ecs_task_execution_role_arn" {
-  description = "ecs task execution role arn"
-  value       = module.iam.ecs_task_execution_role_arn
+output "irsa_role_arns" {
+  value = module.iam.irsa_role_arns
 }
-
-output "ecs_task_role_arns" {
-  description = "ecs task role anrs"
-  value       = module.iam.ecs_task_role_arns
-}
-
