@@ -13,6 +13,11 @@ output "sg_rds_id" {
   value       = module.security_group.sg_rds_id
 }
 
+output "sg_rds_proxy_id" {
+  description = "Rds Proxy Security Group ID"
+  value = module.security_group.sg_rds_proxy_id
+}
+
 output "sg_redis_id" {
   description = "Redis Security Group ID"
   value       = module.security_group.sg_redis_id
