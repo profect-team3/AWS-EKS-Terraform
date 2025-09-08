@@ -1,28 +1,3 @@
-locals {
-  lambda_vpce_policy = length(var.lambda_allowed_function_arns) > 0 ? jsonencode({
-    Version   = "2012-10-17",
-    Statement = [{
-      Effect    = "Allow",
-      Principal = "*",
-      Action    = ["lambda:InvokeFunction", "lambda:InvokeAsync"],
-      Resource  = var.lambda_allowed_function_arns
-    }]
-  }) : null
-}
-
-resource "aws_vpc_endpoint" "lambda" {
-  vpc_id              = var.vpc_id
-  service_name        = "com.amazonaws.${var.region}.lambda"
-  vpc_endpoint_type   = "Interface"
-  private_dns_enabled = true
-  subnet_ids          = var.subnet_ids
-  security_group_ids  = [var.vpc_endpoint_sg_id]
-
-  policy = local.lambda_vpce_policy
-
-  tags = merge(var.tags, { Name = "${var.name}-vpce-lambda" })
-}
-
 # 1) ECR API (Interface)
 resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id              = var.vpc_id

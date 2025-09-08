@@ -7,7 +7,7 @@ locals {
 module "ecr" {
   source            = "../../modules/compute/ecr"
   name              = local.name
-  repositories      = keys(var.service_definitions)
+  repositories      = var.service_definitions
   image_mutability  = var.image_mutability
   # scan_on_push     = var.scan_on_push
   # encryption_type  = var.encryption_type

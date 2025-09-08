@@ -1,8 +1,3 @@
-output "sg_alb_id" {
-  description = "ALB Security Group ID"
-  value       = module.security_group.sg_alb_id
-}
-
 output "sg_mongo_id" {
   description = "MongoDB Security Group ID"
   value       = module.security_group.sg_mongo_id
@@ -33,14 +28,8 @@ output "vpc_endpoint_sg_id" {
   value       = module.security_group.vpc_endpoint_sg_id
 }
 
-output "ecs_task_execution_role_arn" {
-  description = "ecs task execution role arn"
-  value       = module.iam.ecs_task_execution_role_arn
-}
-
-output "ecs_task_role_arns" {
-  description = "ecs task role anrs"
-  value       = module.iam.ecs_task_role_arns
+output "irsa_role_arns" {
+  value = module.iam.irsa_role_arns
 }
 
 output "bastion_eks" {

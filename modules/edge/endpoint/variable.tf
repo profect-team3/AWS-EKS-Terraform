@@ -5,11 +5,6 @@ variable "tags"    {
   default = {}
 }
 
-variable "lambda_allowed_function_arns" {
-  type    = list(string)
-  default = []
-}
-
 variable "vpc_id"     { type = string }
 variable "subnet_ids" { type = list(string) }
 variable "private_route_table_ids" { type = list(string) }

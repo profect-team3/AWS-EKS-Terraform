@@ -35,16 +35,5 @@ variable "keep_any_last"    {
 
 # service
 variable "service_definitions" {
-  type = map(object({
-    port         = number
-    ingress_from = string
-    egress       = list(object({
-      to   = string
-      port = number
-    }))
-    cpu    = string
-    memory = string
-    env_keys    = list(string)
-    secret_keys = list(string)
-  }))
+  type    = list(string)
 }
