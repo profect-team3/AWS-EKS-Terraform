@@ -62,29 +62,6 @@ resource "aws_security_group" "bastion_eks" {
   })
 }
 
-# VPC Endpoint
-resource "aws_security_group" "vpc_endpoint_sg" {
-  name   = "${var.name}-vpce-sg"
-  vpc_id = var.vpc_id
-
-  ingress {
-    description = "HTTPS from VPC"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = var.tags
-}
-
 # mongo
 resource "aws_vpc_security_group_ingress_rule" "mongo_ecs" {
   security_group_id = aws_security_group.mongo_db.id
