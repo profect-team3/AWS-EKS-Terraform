@@ -155,3 +155,13 @@ variable "docdb_instance_class"{
   type = string
   default = "db.t3.medium"
 }
+
+variable "service_definitions"{ type = any }
+
+variable "secret_names" { type = map(string) }
+variable "kms_key_arn"  { type = string }
+
+variable "vpc_cidr" {
+  description = "VPC CIDR 블록"
+  type        = string
+}

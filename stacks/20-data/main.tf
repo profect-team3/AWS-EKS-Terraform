@@ -19,10 +19,15 @@ locals {
   name = "${var.project}-${var.env}"
   tags = merge(var.tags, { Project = var.project, Env = var.env })
   private_subnet_ids = ["subnet-0520c9b431facfcbe","subnet-08b1c187f7889d2d4"]
-  sg_rds_id = data.terraform_remote_state.security.outputs.sg_rds_id
-  sg_rds_proxy_id = data.terraform_remote_state.security.outputs.sg_rds_proxy_id
-  sg_redis_id = data.terraform_remote_state.security.outputs.sg_redis_id
-  sg_mongo_id = data.terraform_remote_state.security.outputs.sg_mongo_id
+}
+
+module "security_group" {
+  source   = "../../modules/security/security-group"
+  name     = local.name
+  tags     = local.tags
+  vpc_id   = "vpc-05e4602e06b973291"
+  service_definitions = var.service_definitions
+  vpc_cidr = var.vpc_cidr
 }
 
 # Redis
@@ -31,7 +36,7 @@ module "redis" {
   source               = "../../modules/data/ec2-redis"
   name                 = local.name
   subnet_id            = local.private_subnet_ids[0]
-  sg_redis_id          = local.sg_redis_id
+  sg_redis_id          = module.security_group.sg_redis_id
 
   ami_id        = coalesce(var.redis_ami_id, var.ami_id)
   instance_type = coalesce(var.redis_instance_type, var.instance_type)
@@ -48,7 +53,7 @@ module "docdb" {
   source      = "../../modules/data/docdb"
   name        = local.name
   subnet_ids  = local.private_subnet_ids
-  sg_mongo_id = local.sg_mongo_id
+  sg_mongo_id = module.security_group.sg_mongo_id
   db_username    = var.docdb_username
   db_password    = var.docdb_password
   instance_class = var.docdb_instance_class
@@ -61,8 +66,8 @@ module "rds" {
   source     = "../../modules/data/rds"
   name       = local.name
   subnet_ids = local.private_subnet_ids
-  sg_rds_id  = local.sg_rds_id
-  sg_rds_proxy_id = local.sg_rds_proxy_id
+  sg_rds_id  = module.security_group.sg_rds_id
+  sg_rds_proxy_id = module.security_group.sg_rds_proxy_id
   tags       = local.tags
 
   db_username     = var.rds_username
@@ -81,7 +86,7 @@ module "mongo" {
   source               = "../../modules/data/ec2-mongo"
   name                 = local.name
   subnet_id            = local.private_subnet_ids[0]
-  sg_mongo_id          = local.sg_mongo_id
+  sg_mongo_id          = module.security_group.sg_mongo_id
 
   ami_id        = coalesce(var.mongo_ami_id, var.ami_id)
   instance_type = coalesce(var.mongo_instance_type, var.instance_type)
@@ -92,4 +97,23 @@ module "mongo" {
   volume_iops = var.volume_iops
 
   tags        = local.tags
+}
+
+# ElastiCache
+module "elasticache" {
+  source              = "../../modules/data/elasticache"
+  cluster_name        = "order-elasticache-redis"
+  description         = "order-redis"
+  engine_version      = "7.0"
+  node_type           = "cache.m5.large"
+  replica_count       = 1
+  port                = 6380
+  subnet_ids          = local.private_subnet_ids
+  security_group_ids  = module.security_group.sg_elasticache_id
+  multi_az            = true
+  automatic_failover  = true
+  transit_encryption_enabled = true
+  at_rest_encryption_enabled  = true
+  parameter_group_name        = "default.redis7"
+  snapshot_retention_limit = 0
 }
