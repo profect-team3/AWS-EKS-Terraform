@@ -4,14 +4,14 @@ data "aws_secretsmanager_secret" "by_name" {
   name     = each.value
 }
 # EKS 클러스터 OIDC Issuer URL
-data "aws_eks_cluster" "this" {
-  name = var.eks_cluster_name
-}
+# data "aws_eks_cluster" "this" {
+#   name = var.eks_cluster_name
+# }
 
 # 수동 IAM OIDC Provider
-data "aws_iam_openid_connect_provider" "this" {
-  url = local.oidc_issuer_url
-}
+# data "aws_iam_openid_connect_provider" "this" {
+#   url = local.oidc_issuer_url
+# }
 
 locals {
   service_secret_keys = {
@@ -39,11 +39,11 @@ locals {
     svc => arns if length(arns) > 0
   }
 
-  eks_identity = one(data.aws_eks_cluster.this.identity)
-  eks_oidc_block = one(local.eks_identity.oidc)
-
-  oidc_issuer_url = local.eks_oidc_block.issuer
-  oidc_host = replace(local.oidc_issuer_url, "https://", "")
+  # eks_identity = one(data.aws_eks_cluster.this.identity)
+  # eks_oidc_block = one(local.eks_identity.oidc)
+  #
+  # oidc_issuer_url = local.eks_oidc_block.issuer
+  # oidc_host = replace(local.oidc_issuer_url, "https://", "")
 }
 
 # 서비스별 IRSA Role
@@ -57,12 +57,14 @@ resource "aws_iam_role" "irsa_role" {
       {
         Effect = "Allow",
         Principal = {
-          Federated = data.aws_iam_openid_connect_provider.this.arn
+          # Federated = data.aws_iam_openid_connect_provider.this.arn
+          Federated = ""
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
           StringEquals = {
-            "${local.oidc_host}:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
+            # "${local.oidc_host}:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
+            ":sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
           }
         }
       }
