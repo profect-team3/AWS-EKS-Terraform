@@ -6,6 +6,7 @@ variable "tags" {
 
 variable "subnet_ids" {type = list(string)}
 variable "sg_rds_id" {type = string}
+variable "sg_rds_proxy_id" {type = string}
 
 variable "db_username" {
   type = string

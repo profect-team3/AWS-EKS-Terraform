@@ -1,8 +1,3 @@
-output "sg_alb_id" {
-  description = "ALB Security Group ID"
-  value       = module.security_group.sg_alb_id
-}
-
 output "sg_mongo_id" {
   description = "MongoDB Security Group ID"
   value       = module.security_group.sg_mongo_id
@@ -11,6 +6,11 @@ output "sg_mongo_id" {
 output "sg_rds_id" {
   description = "Rds Security Group ID"
   value       = module.security_group.sg_rds_id
+}
+
+output "sg_rds_proxy_id" {
+  description = "Rds Proxy Security Group ID"
+  value = module.security_group.sg_rds_proxy_id
 }
 
 output "sg_redis_id" {
@@ -30,4 +30,9 @@ output "vpc_endpoint_sg_id" {
 
 output "irsa_role_arns" {
   value = module.iam.irsa_role_arns
+}
+
+output "bastion_eks" {
+  description = "Bastion EKS SG ID"
+  value = module.security_group.bastion_eks_sg_id
 }
