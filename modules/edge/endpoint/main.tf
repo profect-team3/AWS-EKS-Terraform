@@ -1,3 +1,26 @@
+# VPC Endpoint
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name   = "${var.name}-vpce-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    description = "HTTPS from VPC"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.tags
+}
+
 # 1) ECR API (Interface)
 resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id              = var.vpc_id
@@ -5,7 +28,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
   subnet_ids          = var.subnet_ids
-  security_group_ids  = [var.vpc_endpoint_sg_id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
   tags = merge(var.tags, { Name = "${var.name}-vpce-ecr-api" })
 }
 
@@ -16,7 +39,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
   subnet_ids          = var.subnet_ids
-  security_group_ids  = [var.vpc_endpoint_sg_id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
   tags = merge(var.tags, { Name = "${var.name}-vpce-ecr-dkr" })
 }
 
@@ -41,7 +64,7 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
   subnet_ids          = var.subnet_ids
-  security_group_ids  = [var.vpc_endpoint_sg_id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
   tags = merge(var.tags, { Name = "${var.name}-vpce-secretsmanager" })
 }
 
@@ -52,7 +75,7 @@ resource "aws_vpc_endpoint" "kms" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
   subnet_ids          = var.subnet_ids
-  security_group_ids  = [var.vpc_endpoint_sg_id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
   tags = merge(var.tags, { Name = "${var.name}-vpce-kms" })
 }
 
@@ -63,6 +86,6 @@ resource "aws_vpc_endpoint" "logs" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
   subnet_ids          = var.subnet_ids
-  security_group_ids  = [var.vpc_endpoint_sg_id]
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
   tags = merge(var.tags, { Name = "${var.name}-vpce-logs" })
 }
