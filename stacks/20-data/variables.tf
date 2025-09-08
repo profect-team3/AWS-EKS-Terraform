@@ -117,51 +117,10 @@ variable "redis_volume_type" {
   default     = null
 }
 
-# # --- MongoDB 전용 오버라이드(선택) ---
-variable "mongo_ami_id" {
-  type        = string
-  description = "MongoDB용 AMI ID (없으면 공통 ami_id 사용)"
-  default     = null
-}
-
-variable "mongo_instance_type" {
-  type        = string
-  description = "MongoDB용 인스턴스 타입 (없으면 공통 instance_type 사용)"
-  default     = null
-}
-
-variable "mongo_key_name" {
-  type        = string
-  description = "MongoDB용 키페어 (없으면 공통 key_name 사용)"
-  default     = null
-}
-
-variable "mongo_volume_size" {
-  type        = number
-  description = "MongoDB용 EBS 크기 (없으면 공통 volume_size 사용)"
-  default     = null
-}
-
-variable "mongo_volume_type" {
-  type        = string
-  description = "MongoDB용 EBS 타입 (없으면 공통 volume_type 사용)"
-  default     = null
-}
-
 #--DOC DB --
 variable "docdb_username"         { type = string }
 variable "docdb_password"         { type = string }
 variable "docdb_instance_class"{
   type = string
   default = "db.t3.medium"
-}
-
-variable "service_definitions"{ type = any }
-
-variable "secret_names" { type = map(string) }
-variable "kms_key_arn"  { type = string }
-
-variable "vpc_cidr" {
-  description = "VPC CIDR 블록"
-  type        = string
 }
