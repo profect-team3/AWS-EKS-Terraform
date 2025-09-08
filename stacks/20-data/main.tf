@@ -1,15 +1,5 @@
 #Local -> subnet = "subnet-xxxxxx" , module -> 로컬의 배열 사용으로 변경 했습니다.
 #DocDB -> subnetids 부분은 원래 서브넷을 여러 개 쓰도록 되어 있는데, 아직 테스트 중이므로 list로 반환하기 위해 [local~~[0]]으로 설정 했습니다.
-data "terraform_remote_state" "security" {
-  backend = "local"
-  config = {
-    path = "${path.module}/../10-security/terraform.tfstate"
-  }
-}
-
-data "aws_iam_role" "proxy_role" {
-  name = "AWSServiceRoleForRDS"
-}
 
 data "aws_secretsmanager_secret" "rds" {
   arn = "arn:aws:secretsmanager:ap-northeast-2:252098843029:secret:prod/rds-KDVpON"
@@ -26,8 +16,7 @@ module "security_group" {
   name     = local.name
   tags     = local.tags
   vpc_id   = "vpc-05e4602e06b973291"
-  service_definitions = var.service_definitions
-  vpc_cidr = var.vpc_cidr
+  vpc_cidr = "10.0.0.0/16"
 }
 
 # Redis
@@ -47,6 +36,7 @@ module "redis" {
   volume_iops = var.volume_iops
 
   tags        = local.tags
+  depends_on = [module.security_group]
 }
 
 module "docdb" {
@@ -59,6 +49,7 @@ module "docdb" {
   instance_class = var.docdb_instance_class
 
   tags = var.tags
+  depends_on = [module.security_group]
 }
 
 # RDS
@@ -78,25 +69,7 @@ module "rds" {
   proxy_name      = var.proxy_name
   proxy_secret_arn = "${data.aws_secretsmanager_secret.rds.arn}"
   proxy_role_arn   = "arn:aws:iam::252098843029:role/service-role/rds-proxy-role-1757065715664"
-}
-
-#MongoDB
-module "mongo" {
-  # for_each             = toset(local.private_subnet_ids)
-  source               = "../../modules/data/ec2-mongo"
-  name                 = local.name
-  subnet_id            = local.private_subnet_ids[0]
-  sg_mongo_id          = module.security_group.sg_mongo_id
-
-  ami_id        = coalesce(var.mongo_ami_id, var.ami_id)
-  instance_type = coalesce(var.mongo_instance_type, var.instance_type)
-  key_name      = coalesce(var.mongo_key_name, var.key_name)
-
-  volume_size = coalesce(var.mongo_volume_size, var.volume_size)
-  volume_type = coalesce(var.mongo_volume_type, var.volume_type)
-  volume_iops = var.volume_iops
-
-  tags        = local.tags
+  depends_on = [module.security_group]
 }
 
 # ElastiCache
@@ -109,11 +82,12 @@ module "elasticache" {
   replica_count       = 1
   port                = 6380
   subnet_ids          = local.private_subnet_ids
-  security_group_ids  = module.security_group.sg_elasticache_id
+  security_group_ids  = [module.security_group.sg_elasticache_id]
   multi_az            = true
   automatic_failover  = true
   transit_encryption_enabled = true
   at_rest_encryption_enabled  = true
   parameter_group_name        = "default.redis7"
   snapshot_retention_limit = 0
+  depends_on = [module.security_group]
 }

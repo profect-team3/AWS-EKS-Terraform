@@ -56,14 +56,27 @@ resource "aws_security_group" "bastion_eks" {
   name        = "Bastion-Eks"
   description = "SSH"
   vpc_id      = var.vpc_id
-
-  tags = merge(var.tags, {
-    Name = "Bastion-Eks"
-  })
+  # 인바운드 : SSH
+  ingress {
+    description      = "SSH from anywhere"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+  # 아웃 바운드 : 모든 트래픽
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+  tags = merge(var.tags, { Name = "Bastion-Eks" })
 }
 
+
 # mongo
-resource "aws_vpc_security_group_ingress_rule" "mongo_ecs" {
+resource "aws_vpc_security_group_ingress_rule" "mongo_eks" {
   security_group_id = aws_security_group.mongo_db.id
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
@@ -79,6 +92,8 @@ resource "aws_vpc_security_group_egress_rule" "mongo_all_out" {
 resource "aws_vpc_security_group_ingress_rule" "rds_eks" {
   security_group_id            = aws_security_group.rds.id
   ip_protocol                  = "tcp"
+  from_port = 5432
+  to_port = 5432
   cidr_ipv4 = "0.0.0.0/0"
 }
 
@@ -154,22 +169,6 @@ resource "aws_vpc_security_group_egress_rule" "elasticache_eks" {
   security_group_id = aws_security_group.elasticache.id
   ip_protocol       = "-1"
   cidr_ipv4 = "0.0.0.0/0"
-}
-
-# Bastion-Eks Ingress Rule
-resource "aws_vpc_security_group_ingress_rule" "bastion_eks_ssh_ingress" {
-  security_group_id = aws_security_group.bastion_eks.id
-  ip_protocol       = "tcp"
-  from_port         = 22
-  to_port           = 22
-  cidr_ipv4         = "0.0.0.0/0"
-}
-
-# Bastion-Eks Egress Rule
-resource "aws_vpc_security_group_egress_rule" "bastion_eks_all_egress" {
-  security_group_id = aws_security_group.bastion_eks.id
-  ip_protocol       = "-1"
-  cidr_ipv4         = "0.0.0.0/0"
 }
 
 # # ecs
