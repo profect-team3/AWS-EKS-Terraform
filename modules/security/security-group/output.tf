@@ -32,9 +32,3 @@ output "bastion_eks_sg_id" {
   description = "Bastion-Eks Security Group ID"
   value       = aws_security_group.bastion_eks.id
 }
-
-
-output "vpc_endpoint_sg_id" {
-  description = "VPCEndpoint Security Group ID"
-  value       = aws_security_group.vpc_endpoint_sg.id
-}
