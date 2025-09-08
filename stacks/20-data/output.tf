@@ -53,3 +53,11 @@ output "docdb_cluster_id" {
 output "docdb_instance_ids" {
   value = module.docdb.docdb_instance_ids
 }
+
+# ElastiCache
+output "elasticache_primary_endpoint" {
+  value = module.elasticache.primary_endpoint
+}
+output "elasticache_port" {
+  value = module.elasticache.port
+}
