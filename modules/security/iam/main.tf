@@ -9,9 +9,9 @@ data "aws_eks_cluster" "this" {
 }
 
 # 수동 IAM OIDC Provider
-# data "aws_iam_openid_connect_provider" "this" {
-#   url = local.oidc_issuer_url
-# }
+data "aws_iam_openid_connect_provider" "this" {
+  url = local.oidc_issuer_url
+}
 
 locals {
   service_secret_keys = {
@@ -38,11 +38,12 @@ locals {
     for svc, arns in local.service_secret_arns :
     svc => arns if length(arns) > 0
   }
-  # eks_identity     = one(data.aws_eks_cluster.this.identity)
-  # eks_oidc_block   = one(local.eks_identity.oidc)
-  #
-  # oidc_issuer_url = local.eks_oidc_block.issuer
-  # oidc_host       = replace(local.oidc_issuer_url, "https://", "")
+
+  eks_identity = one(data.aws_eks_cluster.this.identity)
+  eks_oidc_block = one(local.eks_identity.oidc)
+
+  oidc_issuer_url = local.eks_oidc_block.issuer
+  oidc_host = replace(local.oidc_issuer_url, "https://", "")
 }
 
 # 서비스별 IRSA Role
@@ -56,14 +57,12 @@ resource "aws_iam_role" "irsa_role" {
       {
         Effect = "Allow",
         Principal = {
-          # Federated = data.aws_iam_openid_connect_provider.this.arn
-          Federated = "arn:aws:iam::252098843029:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/8E6B00CFC9FDC46572156BBACA2D5E3B"
+          Federated = data.aws_iam_openid_connect_provider.this.arn
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
           StringEquals = {
-            # "${local.oidc_host}:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
-            "oidc.eks.ap-northeast-2.amazonaws.com/id/8E6B00CFC9FDC46572156BBACA2D5E3B:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
+            "${local.oidc_host}:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
           }
         }
       }
