@@ -3,6 +3,7 @@ data "aws_secretsmanager_secret" "by_name" {
   for_each = var.secret_names
   name     = each.value
 }
+
 # EKS 클러스터 OIDC Issuer URL
 # data "aws_eks_cluster" "this" {
 #   name = var.eks_cluster_name
