@@ -21,7 +21,7 @@ resource "aws_instance" "db" {
     sudo systemctl enable --now redis-server
     REDIS_CONF="/etc/redis/redis.conf"
     REDIS_PASSWORD="password"
-    sudo sed -i 's/^bind 127.0.0.1 ::1/# bind 127.0.0.1 ::1/' "$REDIS_CONF"
+    sudo sed -i 's/^bind .*/bind 0.0.0.0/' "$REDIS_CONF"
     if grep -q "^# requirepass" "$REDIS_CONF"; then
         sudo sed -i "s/^# requirepass .*/requirepass $REDIS_PASSWORD/" "$REDIS_CONF"
     else
