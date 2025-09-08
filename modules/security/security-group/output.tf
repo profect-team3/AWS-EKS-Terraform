@@ -23,17 +23,18 @@ output "sg_redis_id" {
   value       = aws_security_group.redis.id
 }
 
+output "sg_elasticache_id"{
+  description = "ElastiCache Security Group ID"
+  value = aws_security_group.elasticache.id
+}
+
 output "bastion_eks_sg_id" {
   description = "Bastion-Eks Security Group ID"
   value       = aws_security_group.bastion_eks.id
 }
 
-output "sg_ecs_service_ids" {
-  description = "Per-service ECS SG IDs"
-  value       = { for k, v in aws_security_group.svc : k => v.id }
-}
 
 output "vpc_endpoint_sg_id" {
-  description = "Redis Security Group ID"
+  description = "VPCEndpoint Security Group ID"
   value       = aws_security_group.vpc_endpoint_sg.id
 }
