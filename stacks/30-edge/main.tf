@@ -4,7 +4,7 @@ locals {
   region = var.region
 
   vpc_id = "vpc-05e4602e06b973291"
-  private_route_table_ids = ["rtb-0d83f55e89e8fb64e", "rtb-0ef4a4135100431b8"]
+  private_route_table_ids = ["rtb-0d83f55e89e8fb64e"]
   private_subnet_ids = ["subnet-0520c9b431facfcbe", "subnet-08b1c187f7889d2d4"]
 }
 
