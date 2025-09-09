@@ -17,14 +17,14 @@ data "aws_secretsmanager_secret" "by_name" {
 locals {
   service_secret_keys = {
     mcpserver = []
-    report = ["DB_PASSWORD"]
-    user = ["DB_PASSWORD"]
-    store = ["DB_PASSWORD", "DISCORD_URL", "username", "password", "host"]
-    auth = ["DB_PASSWORD", "REDIS_PASSWORD"]
-    order = ["DB_PASSWORD", "REDIS_PASSWORD", "DISCORD_URL", "username", "password", "host"]
-    payment = ["DB_PASSWORD", "REDIS_PASSWORD", "TOSS_CLIENT_KEY", "TOSS_SECRET_KEY"]
-    review = ["DB_PASSWORD"]
-    ai = ["DB_PASSWORD", "OPENAI_API_KEY"]
+    report = ["POSTGRES"]
+    user = ["POSTGRES"]
+    store = ["POSTGRES", "DISCORD_URL", "MONGO"]
+    auth = ["POSTGRES", "REDIS"]
+    order = ["POSTGRES", "REDIS", "DISCORD_URL", "MONGO"]
+    payment = ["POSTGRES", "REDIS", "TOSS"]
+    review = ["POSTGRES"]
+    ai = ["POSTGRES", "OPENAI_API_KEY"]
   }
 
   all_secret_arns = {for k, _ in var.secret_names : k => data.aws_secretsmanager_secret.by_name[k].arn}
@@ -39,6 +39,9 @@ locals {
     for svc, arns in local.service_secret_arns :
     svc => arns if length(arns) > 0
   }
+
+  # JWT 서명 권한이 필요한 서비스 목록
+  jwt_kms_services = ["auth"]
 
   # eks_identity = one(data.aws_eks_cluster.this.identity)
   # eks_oidc_block = one(local.eks_identity.oidc)
@@ -59,13 +62,13 @@ resource "aws_iam_role" "irsa_role" {
         Effect = "Allow",
         Principal = {
           # Federated = data.aws_iam_openid_connect_provider.this.arn
-          Federated = ""
+          Federated = "arn:aws:iam::252098843029:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/F6E55736763FAF980C336D25962A0B3C"
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
           StringEquals = {
             # "${local.oidc_host}:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
-            ":sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
+            "oidc.eks.ap-northeast-2.amazonaws.com/id/F6E55736763FAF980C336D25962A0B3C:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
           }
         }
       }
@@ -94,6 +97,25 @@ data "aws_iam_policy_document" "svc_policy" {
     actions   = ["kms:Decrypt"]
     resources = [var.kms_key_arn]
   }
+
+  # ── (신규) JWT 서명용 KMS 권한 (auth 등 필요한 서비스에만)
+  dynamic "statement" {
+    for_each = (
+    contains(local.jwt_kms_services, each.key) && var.kms_jwt_key_arn != null
+    ) ? [1] : []
+
+    content {
+      sid     = "KmsJwtSignVerify"
+      effect  = "Allow"
+      actions = [
+        "kms:GetPublicKey",
+        "kms:DescribeKey",
+        "kms:Sign",
+        "kms:Verify"
+      ]
+      resources = [var.kms_jwt_key_arn]
+    }
+  }
 }
 
 resource "aws_iam_policy" "svc_policy" {
@@ -107,3 +129,4 @@ resource "aws_iam_role_policy_attachment" "attach" {
   role      = aws_iam_role.irsa_role[each.key].name
   policy_arn= aws_iam_policy.svc_policy[each.key].arn
 }
+

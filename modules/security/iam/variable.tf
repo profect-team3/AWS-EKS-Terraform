@@ -9,3 +9,8 @@ variable "eks_cluster_name"   { type = string }   # EKS 클러스터 이름
 variable "namespace"          { type = string }   # ex: msa-test
 variable "kms_key_arn"        { type = string }   # KMS는 필수
 variable "secret_names"       { type = map(string) }
+
+variable "kms_jwt_key_arn" {
+  type        = string
+  default     = null
+}
