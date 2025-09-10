@@ -5,32 +5,15 @@ data "aws_secretsmanager_secret" "by_name" {
 }
 
 # EKS 클러스터 OIDC Issuer URL
-# data "aws_eks_cluster" "this" {
-#   name = var.eks_cluster_name
-# }
-
-# 수동 IAM OIDC Provider
-# data "aws_iam_openid_connect_provider" "this" {
-#   url = local.oidc_issuer_url
-# }
+data "aws_eks_cluster" "this" {
+  name = var.eks_cluster_name
+}
 
 locals {
-  service_secret_keys = {
-    mcpserver = []
-    report = ["POSTGRES"]
-    user = ["POSTGRES"]
-    store = ["POSTGRES", "DISCORD_URL", "MONGO"]
-    auth = ["POSTGRES", "REDIS"]
-    order = ["POSTGRES", "REDIS", "DISCORD_URL", "MONGO"]
-    payment = ["POSTGRES", "REDIS", "TOSS"]
-    review = ["POSTGRES"]
-    ai = ["POSTGRES", "OPENAI_API_KEY"]
-  }
-
   all_secret_arns = {for k, _ in var.secret_names : k => data.aws_secretsmanager_secret.by_name[k].arn}
 
   service_secret_arns = {
-    for svc, keys in local.service_secret_keys :
+    for svc, keys in var.service_secret_keys :
     svc => [for k in keys : local.all_secret_arns[k]]
   }
 
@@ -40,14 +23,13 @@ locals {
     svc => arns if length(arns) > 0
   }
 
-  # JWT 서명 권한이 필요한 서비스 목록
-  jwt_kms_services = ["auth"]
+  eks_oidc_issuer_url        = try(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, null)
+  eks_oidc_issuer_host_path  = local.eks_oidc_issuer_url != null ? replace(local.eks_oidc_issuer_url, "https://", "") : null
+}
 
-  # eks_identity = one(data.aws_eks_cluster.this.identity)
-  # eks_oidc_block = one(local.eks_identity.oidc)
-  #
-  # oidc_issuer_url = local.eks_oidc_block.issuer
-  # oidc_host = replace(local.oidc_issuer_url, "https://", "")
+# 기존에 생성된 IAM OIDC Provider 조회
+data "aws_iam_openid_connect_provider" "eks" {
+  url = local.eks_oidc_issuer_url
 }
 
 # 서비스별 IRSA Role
@@ -61,14 +43,12 @@ resource "aws_iam_role" "irsa_role" {
       {
         Effect = "Allow",
         Principal = {
-          # Federated = data.aws_iam_openid_connect_provider.this.arn
-          Federated = "arn:aws:iam::252098843029:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/F6E55736763FAF980C336D25962A0B3C"
+          Federated = data.aws_iam_openid_connect_provider.eks.arn
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
           StringEquals = {
-            # "${local.oidc_host}:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
-            "oidc.eks.ap-northeast-2.amazonaws.com/id/F6E55736763FAF980C336D25962A0B3C:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
+            "${local.eks_oidc_issuer_host_path}:sub" = "system:serviceaccount:${var.namespace}:${each.key}-sa"
           }
         }
       }
@@ -80,6 +60,7 @@ resource "aws_iam_role" "irsa_role" {
 data "aws_iam_policy_document" "svc_policy" {
   for_each = local.services_with_secrets
 
+  # Secrets Manager 읽기
   statement {
     sid       = "ReadSecretsManager"
     effect    = "Allow"
@@ -91,6 +72,7 @@ data "aws_iam_policy_document" "svc_policy" {
     resources = each.value
   }
 
+  # 공통: KMS decrypt (Secrets 암호화 해제)
   statement {
     sid       = "KmsDecryptForSecrets"
     effect    = "Allow"
@@ -98,12 +80,9 @@ data "aws_iam_policy_document" "svc_policy" {
     resources = [var.kms_key_arn]
   }
 
-  # ── (신규) JWT 서명용 KMS 권한 (auth 등 필요한 서비스에만)
+  # auth 서비스만: JWT 서명/검증용 KMS 키 권한
   dynamic "statement" {
-    for_each = (
-    contains(local.jwt_kms_services, each.key) && var.kms_jwt_key_arn != null
-    ) ? [1] : []
-
+    for_each = (each.key == "auth" && var.kms_jwt_key_arn != null) ? [1] : []
     content {
       sid     = "KmsJwtSignVerify"
       effect  = "Allow"
@@ -130,3 +109,49 @@ resource "aws_iam_role_policy_attachment" "attach" {
   policy_arn= aws_iam_policy.svc_policy[each.key].arn
 }
 
+# AmazonEKSLoadBalancerControllerRole 신뢰관계 수정
+data "aws_iam_role" "alb_controller" {
+  name = "AmazonEKSLoadBalancerControllerRole"
+}
+
+data "aws_iam_policy_document" "alb_controller_irsa_trust" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [data.aws_iam_openid_connect_provider.eks.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_oidc_issuer_host_path}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_oidc_issuer_host_path}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+# 기존 Role을 Terraform이 관리하도록 정의 (assume_role_policy만 관리)
+resource "aws_iam_role" "alb_controller" {
+  name               = data.aws_iam_role.alb_controller.name
+  assume_role_policy = data.aws_iam_policy_document.alb_controller_irsa_trust.json
+
+  lifecycle {
+    ignore_changes = [
+      description,
+      path,
+      max_session_duration,
+      permissions_boundary,
+      tags,
+      inline_policy,
+      managed_policy_arns
+    ]
+  }
+}

@@ -15,4 +15,5 @@ module "iam" {
   secret_names        = var.secret_names
   kms_key_arn         = var.kms_key_arn
   kms_jwt_key_arn     = var.kms_jwt_key_arn
+  service_secret_keys = var.service_secret_keys
 }
