@@ -78,7 +78,9 @@ resource "aws_security_group" "bastion_eks" {
 # mongo
 resource "aws_vpc_security_group_ingress_rule" "mongo_eks" {
   security_group_id = aws_security_group.mongo_db.id
-  ip_protocol       = "-1"
+  ip_protocol       = "tcp"
+  from_port         = 27017
+  to_port           = 27017
   cidr_ipv4         = "0.0.0.0/0"
 }
 
@@ -124,7 +126,9 @@ resource "aws_vpc_security_group_egress_rule" "rds_all_out" {
 #RDS-Proxy
 resource "aws_vpc_security_group_ingress_rule" "rds_proxy_rds" {
   security_group_id = aws_security_group.rds_proxy.id
-  ip_protocol       = "-1"
+  ip_protocol       = "tcp"
+  from_port         = 5432
+  to_port           = 5432
   cidr_ipv4 = "0.0.0.0/0"
 }
 
@@ -148,7 +152,9 @@ resource "aws_vpc_security_group_egress_rule" "rds_proxy_to_rds" {
 # redis
 resource "aws_vpc_security_group_ingress_rule" "redis_eks" {
   security_group_id            = aws_security_group.redis.id
-  ip_protocol                  = "-1"
+  ip_protocol                  = "tcp"
+  from_port                    = 6379
+  to_port                      = 6379
   cidr_ipv4 = "0.0.0.0/0"
 }
 
@@ -161,7 +167,9 @@ resource "aws_vpc_security_group_egress_rule" "redis_all_out" {
 # ElastiCache
 resource "aws_vpc_security_group_ingress_rule" "elasticache_eks" {
   security_group_id = aws_security_group.elasticache.id
-  ip_protocol = "-1"
+  ip_protocol       = "tcp"
+  from_port         = 6380
+  to_port           = 6380
   cidr_ipv4 = "0.0.0.0/0"
 }
 
