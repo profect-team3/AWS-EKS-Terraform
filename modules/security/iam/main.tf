@@ -155,3 +155,146 @@ resource "aws_iam_role" "alb_controller" {
     ]
   }
 }
+
+# ebs-csi-controller-sa 신뢰관계 수정
+data "aws_iam_role" "ebs_controller" {
+  name = "EbsCsiController-irsa"
+}
+
+data "aws_iam_policy_document" "ebs_controller_irsa_trust" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [data.aws_iam_openid_connect_provider.eks.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_oidc_issuer_host_path}:sub"
+      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_oidc_issuer_host_path}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+# 기존 Role을 Terraform이 관리하도록 정의 (assume_role_policy만 관리)
+resource "aws_iam_role" "ebs_controller" {
+  name               = data.aws_iam_role.ebs_controller.name
+  assume_role_policy = data.aws_iam_policy_document.ebs_controller_irsa_trust.json
+
+  lifecycle {
+    ignore_changes = [
+      description,
+      path,
+      max_session_duration,
+      permissions_boundary,
+      tags,
+      inline_policy,
+      managed_policy_arns
+    ]
+  }
+}
+
+
+# jenkins-irsa 신뢰관계 수정
+data "aws_iam_role" "jenkins_controller" {
+  name = "jenkins-irsa"
+}
+
+data "aws_iam_policy_document" "jenkins_controller_irsa_trust" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [data.aws_iam_openid_connect_provider.eks.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_oidc_issuer_host_path}:sub"
+      values   = ["system:serviceaccount:jenkins:jenkins-sa"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_oidc_issuer_host_path}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+# 기존 Role을 Terraform이 관리하도록 정의 (assume_role_policy만 관리)
+resource "aws_iam_role" "jenkins_controller" {
+  name               = data.aws_iam_role.jenkins_controller.name
+  assume_role_policy = data.aws_iam_policy_document.jenkins_controller_irsa_trust.json
+
+  lifecycle {
+    ignore_changes = [
+      description,
+      path,
+      max_session_duration,
+      permissions_boundary,
+      tags,
+      inline_policy,
+      managed_policy_arns
+    ]
+  }
+}
+
+
+# jenkins-irsa 신뢰관계 수정
+data "aws_iam_role" "jenkins_agent_controller" {
+  name = "jenkins-agent-irsa"
+}
+
+data "aws_iam_policy_document" "jenkins_agent_controller_irsa_trust" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [data.aws_iam_openid_connect_provider.eks.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_oidc_issuer_host_path}:sub"
+      values   = ["system:serviceaccount:jenkins:jenkins-agent-sa"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_oidc_issuer_host_path}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+# 기존 Role을 Terraform이 관리하도록 정의 (assume_role_policy만 관리)
+resource "aws_iam_role" "jenkins_agent_controller" {
+  name               = data.aws_iam_role.jenkins_agent_controller.name
+  assume_role_policy = data.aws_iam_policy_document.jenkins_agent_controller_irsa_trust.json
+
+  lifecycle {
+    ignore_changes = [
+      description,
+      path,
+      max_session_duration,
+      permissions_boundary,
+      tags,
+      inline_policy,
+      managed_policy_arns
+    ]
+  }
+}
